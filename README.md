@@ -33,6 +33,30 @@ Built using **Next.js, React, Node.js, Express, Prisma, and MySQL**.
 - Manage all users and events.  
 - Access analytics and reports (future enhancement).  
 
+
+### 🚀 Work
+
+These features make the project functional and demo-ready:  
+- **Authentication & Authorization**  
+  - Sign up / login (JWT or NextAuth).  
+  - Roles: Student, Organizer, Admin.  
+  - Role-based access control.  
+- **Event Management (CRUD)**  
+  - Create, edit, delete events.  
+  - Event details: title, description, date, time, venue, category.  
+  - Admin approval workflow.  
+- **RSVP / Booking System**  
+  - Students can register for events.  
+  - Event capacity handling.  
+  - Prevent double booking.  
+  - Student dashboard to view registered events.  
+- **Event Discovery**  
+  - List events with search & filter (category, date).  
+  - Upcoming vs past events.  
+- **Dashboards**  
+  - Student: My Registered Events.  
+  - Organizer: My Created Events.  
+  - Admin: Manage users & events. 
 ---
 
 ## 🛠️ Tech Stack  
@@ -40,8 +64,8 @@ Built using **Next.js, React, Node.js, Express, Prisma, and MySQL**.
 - **Frontend**: Next.js, React, TailwindCSS  
 - **Backend**: Node.js, Express.js  
 - **Database**: MySQL (via Prisma ORM)  
-- **Authentication**: JWT / NextAuth  
-- **Deployment**: Vercel (frontend), Render/Heroku (backend), Railway/MySQL  
+- **Authentication**: JWT  
+- **Deployment**: Vercel
 
 ---
 
