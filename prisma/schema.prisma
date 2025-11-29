@@ -31,6 +31,7 @@ model Event {
   description   String   
   date          DateTime
   venue         String
+  status        String   @default("PENDING")
   
   // Foreign Key to User (the organizer)
   organizerId   Int

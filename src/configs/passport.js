@@ -1,50 +1,32 @@
 const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
+const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
 const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcryptjs');
 
 const prisma = new PrismaClient();
 
-const customFields = {
-  usernameField: 'email',
-  passwordField: 'password'
+const options = {
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  secretOrKey: process.env.JWT_SECRET || 'your_jwt_secret_key_here', // Use env var in production
 };
 
-const verifyCallback = async (email, password, done) => {
+const verifyCallback = async (jwt_payload, done) => {
   try {
     const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() }
+      where: { id: jwt_payload.sub }
     });
 
-    if (!user) {
+    if (user) {
+      return done(null, user);
+    } else {
       return done(null, false);
     }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      return done(null, false);
-    }
-
-    return done(null, user);
-
   } catch (err) {
-    return done(err);
+    return done(err, false);
   }
 };
 
-const strategy = new LocalStrategy(customFields, verifyCallback);
+const strategy = new JwtStrategy(options, verifyCallback);
+
 passport.use(strategy);
 
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-
-passport.deserializeUser(async (userId, done) => {
-  try {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    done(null, user);
-  } catch (err) {
-    done(err);
-  }
-});
+module.exports = passport;

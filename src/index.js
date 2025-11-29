@@ -1,9 +1,10 @@
 const express = require('express');
-const session = require('express-session');
 const passport = require('passport');
 
 
 const authRoutes = require('./routes/auth');
+const adminRoutes = require('./routes/admin');
+const cors = require('cors');
 
 
 require('./configs/passport');
@@ -11,27 +12,28 @@ require('./configs/passport');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-app.use(session({
-  secret: 'secret-key', 
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    maxAge: 1000 * 60 * 60 * 24 // 1 day
-  }
-}));
+
 
 app.use(passport.initialize());
-app.use(passport.session());
 
-// --- Routes ---
+
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('CRITICAL ERROR:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
