@@ -1,8 +1,8 @@
 // src/routes/auth.js
 
 const express = require('express');
-const passport = require('passport');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
 
 const router = express.Router();
@@ -42,20 +42,39 @@ router.post('/register', async (req, res) => {
 });
 
 // POST /api/auth/login
-router.post('/login', passport.authenticate('local'), (req, res) => {
-  const { password: _, ...userWithoutPassword } = req.user;
-  res.status(200).json(userWithoutPassword);
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() }
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const payload = { sub: user.id, role: user.role };
+    const token = jwt.sign(payload, process.env.JWT_SECRET || 'your_jwt_secret_key_here', { expiresIn: '1d' });
+
+    const { password: _, ...userWithoutPassword } = user;
+    res.status(200).json({ token, user: userWithoutPassword });
+
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
 });
 
 // POST /api/auth/logout
-router.post('/logout', (req, res, next) => {
-  req.logout((err) => {
-    if (err) { return next(err); }
-    req.session.destroy(() => {
-      res.clearCookie('connect.sid');
-      res.status(200).json({ message: 'Logged out successfully' });
-    });
-  });
+router.post('/logout', (req, res) => {
+  // Client-side logout (remove token)
+  res.status(200).json({ message: 'Logged out successfully' });
 });
 
 // GET /api/auth/status
