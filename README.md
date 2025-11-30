@@ -1,102 +1,70 @@
-# AP_Project
-This repo is for the final Advanced Programming Project of our college.
+# Getting Started with Create React App
 
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-# 🎓 Campus Event Booker  
+## Available Scripts
 
-A full-stack web application for managing and booking campus events.  
-Students can discover, register, and track events, while organizers and admins can create, manage, and monitor events with ease.  
+In the project directory, you can run:
 
----
+### `npm start`
 
-## 📖 Overview  
-Campus Event Booker aims to streamline event management in a university or college setting.  
-It allows **students** to browse and RSVP to events, **organizers** to create/manage events, and **admins** to oversee the system.  
+Runs the app in the development mode.\
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-Built using **Next.js, React, Node.js, Express, Prisma, and MySQL**.  
+The page will reload when you make changes.\
+You may also see any lint errors in the console.
 
----
+### `npm test`
 
-## 🚀 Features  
+Launches the test runner in the interactive watch mode.\
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-### 👩‍🎓 Students  
-- Browse upcoming events with search and filters.  
-- RSVP/register for events.  
-- View registered events in personal dashboard.  
+### `npm run build`
 
-### 🧑‍💼 Organizers  
-- Create, update, and delete events.  
-- Track attendee lists and manage bookings.  
+Builds the app for production to the `build` folder.\
+It correctly bundles React in production mode and optimizes the build for the best performance.
 
-### 🛡️ Admins  
-- Approve or reject new events.  
-- Manage all users and events.  
-- Access analytics and reports (future enhancement).  
+The build is minified and the filenames include the hashes.\
+Your app is ready to be deployed!
 
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### 🚀 Work
+### `npm run eject`
 
-These features make the project functional and demo-ready:  
-- **Authentication & Authorization**  
-  - Sign up / login (JWT or NextAuth).  
-  - Roles: Student, Organizer, Admin.  
-  - Role-based access control.  
-- **Event Management (CRUD)**  
-  - Create, edit, delete events.  
-  - Event details: title, description, date, time, venue, category.  
-  - Admin approval workflow.  
-- **RSVP / Booking System**  
-  - Students can register for events.  
-  - Event capacity handling.  
-  - Prevent double booking.  
-  - Student dashboard to view registered events.  
-- **Event Discovery**  
-  - List events with search & filter (category, date).  
-  - Upcoming vs past events.  
-- **Dashboards**  
-  - Student: My Registered Events.  
-  - Organizer: My Created Events.  
-  - Admin: Manage users & events. 
----
+**Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
-## 🛠️ Tech Stack  
+If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-- **Frontend**: Next.js, React, TailwindCSS  
-- **Backend**: Node.js, Express.js  
-- **Database**: MySQL (via Prisma ORM)  
-- **Authentication**: JWT  
-- **Deployment**: Vercel
+Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
----
+You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
-## 🗄️ Database Schema  
+## Learn More
 
-```mermaid
-erDiagram
-  User {
-    int id PK
-    string name
-    string email
-    string password
-    string role
-  }
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-  Event {
-    int id PK
-    string title
-    string description
-    datetime date
-    string venue
-    int organizerId FK
-  }
+To learn React, check out the [React documentation](https://reactjs.org/).
 
-  Booking {
-    int id PK
-    int userId FK
-    int eventId FK
-    string status
-  }
+### Code Splitting
 
-  User ||--o{ Event : "organizes"
-  User ||--o{ Booking : "makes"
-  Event ||--o{ Booking : "has"
+This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+
+### Analyzing the Bundle Size
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+
+### Making a Progressive Web App
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+
+### Advanced Configuration
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+
+### Deployment
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+
+### `npm run build` fails to minify
+
+This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
