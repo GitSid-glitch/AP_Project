@@ -1,29 +1,45 @@
-const passport = require('passport');
+const jwt = require('jsonwebtoken');
 
-const isAuthenticated = (req, res, next) => {
-  passport.authenticate('jwt', { session: false }, (err, user, info) => {
-    if (err) return next(err);
-    if (!user) return res.status(401).json({ message: 'Unauthorized. Please log in.' });
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized. Please log in.' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: 'Forbidden. Invalid token.' });
+    }
     req.user = user;
     next();
-  })(req, res, next);
+  });
 };
 
-const isAdmin = (req, res, next) => {
-  if (req.user && req.user.role === 'ADMIN') {
-    return next();
-  }
-  res.status(403).json({ message: 'Forbidden. Admin access required.' });
+const authorizeRole = (role) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Unauthorized.' });
+    }
+
+    // Case insensitive check
+    if (req.user.role.toLowerCase() === role.toLowerCase()) {
+      return next();
+    }
+
+    return res.status(403).json({ message: `Forbidden. ${role} access required.` });
+  };
 };
 
-const isOrganizer = (req, res, next) => {
-  if (req.user && req.user.role === 'ORGANIZER') {
-    return next();
-  }
-  res.status(403).json({ message: 'Forbidden. Organizer access required.' });
-};
+// Backward compatibility aliases
+const isAuthenticated = authenticateToken;
+const isAdmin = authorizeRole('Admin');
+const isOrganizer = authorizeRole('Organizer');
 
 module.exports = {
+  authenticateToken,
+  authorizeRole,
   isAuthenticated,
   isAdmin,
   isOrganizer

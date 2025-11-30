@@ -4,6 +4,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
+const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -29,7 +30,7 @@ router.post('/register', async (req, res) => {
         name: name,
         email: email.toLowerCase(),
         password: hashedPassword,
-        role: 'USER' // Default role
+        role: 'Student' // Default role (was USER, changed to Student to match schema roles)
       }
     });
 
@@ -60,7 +61,8 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    const payload = { sub: user.id, role: user.role };
+    // Payload with id and role
+    const payload = { id: user.id, role: user.role };
     const token = jwt.sign(payload, process.env.JWT_SECRET || 'your_jwt_secret_key_here', { expiresIn: '1d' });
 
     const { password: _, ...userWithoutPassword } = user;
@@ -78,12 +80,20 @@ router.post('/logout', (req, res) => {
 });
 
 // GET /api/auth/status
-router.get('/status', (req, res) => {
-  if (req.isAuthenticated()) {
-    const { password: _, ...userWithoutPassword } = req.user;
+router.get('/status', authenticateToken, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id }
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const { password: _, ...userWithoutPassword } = user;
     res.status(200).json(userWithoutPassword);
-  } else {
-    res.status(401).json({ message: 'Not authenticated' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
