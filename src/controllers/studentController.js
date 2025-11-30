@@ -5,15 +5,12 @@ const getAllEvents = async (req, res) => {
     const { search } = req.query;
     try {
         const where = {
-            status: 'APPROVED'
+            isApproved: true
         };
 
         if (search) {
             where.OR = [
-                { title: { contains: search } }, // Removed mode: 'insensitive' for MySQL compatibility if needed, but Prisma usually handles it. 
-                // Actually, MySQL default collation is often case-insensitive, but let's stick to simple contains.
-                // If user wants case insensitive explicitly in Prisma with MySQL, it depends on collation.
-                // I'll just use contains.
+                { title: { contains: search } }, 
                 { description: { contains: search } }
             ];
         }
@@ -40,7 +37,7 @@ const rsvpEvent = async (req, res) => {
         const event = await prisma.event.findUnique({
             where: { id: parseInt(eventId) },
             include: {
-                bookings: true // To count bookings
+                registrations: true // To count registrations
             }
         });
 
@@ -48,12 +45,12 @@ const rsvpEvent = async (req, res) => {
             return res.status(404).json({ message: 'Event not found' });
         }
 
-        if (event.status !== 'APPROVED') {
+        if (!event.isApproved) {
             return res.status(400).json({ message: 'Event is not open for booking' });
         }
 
         // Check Double Booking
-        const existingBooking = await prisma.booking.findUnique({
+        const existingRegistration = await prisma.registration.findUnique({
             where: {
                 userId_eventId: {
                     userId: userId,
@@ -62,24 +59,21 @@ const rsvpEvent = async (req, res) => {
             }
         });
 
-        if (existingBooking) {
+        if (existingRegistration) {
             return res.status(400).json({ message: 'You have already booked this event' });
         }
 
         // Check Capacity
-        // Note: event.bookings might be large, better to use count or aggregate if possible, 
-        // but include: bookings is okay for small scale. 
-        // Better approach: prisma.booking.count({ where: { eventId: ... } })
-        const bookingCount = await prisma.booking.count({
+        const registrationCount = await prisma.registration.count({
             where: { eventId: parseInt(eventId) }
         });
 
-        if (bookingCount >= event.capacity) {
+        if (registrationCount >= event.capacity) {
             return res.status(400).json({ message: 'Event Full' });
         }
 
-        // Create Booking
-        const booking = await prisma.booking.create({
+        // Create Registration
+        const registration = await prisma.registration.create({
             data: {
                 userId: userId,
                 eventId: parseInt(eventId),
@@ -87,7 +81,7 @@ const rsvpEvent = async (req, res) => {
             }
         });
 
-        res.status(201).json({ message: 'Booking confirmed', booking });
+        res.status(201).json({ message: 'Booking confirmed', registration });
 
     } catch (err) {
         res.status(500).json({ message: 'Server error', error: err.message });
@@ -97,7 +91,7 @@ const rsvpEvent = async (req, res) => {
 const getMyBookings = async (req, res) => {
     const userId = req.user.id;
     try {
-        const bookings = await prisma.booking.findMany({
+        const registrations = await prisma.registration.findMany({
             where: { userId: userId },
             include: {
                 event: {
@@ -109,7 +103,7 @@ const getMyBookings = async (req, res) => {
                 }
             }
         });
-        res.status(200).json(bookings);
+        res.status(200).json(registrations);
     } catch (err) {
         res.status(500).json({ message: 'Server error', error: err.message });
     }
@@ -120,19 +114,19 @@ const cancelBooking = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        const booking = await prisma.booking.findUnique({
+        const registration = await prisma.registration.findUnique({
             where: { id: parseInt(bookingId) }
         });
 
-        if (!booking) {
+        if (!registration) {
             return res.status(404).json({ message: 'Booking not found' });
         }
 
-        if (booking.userId !== userId) {
+        if (registration.userId !== userId) {
             return res.status(403).json({ message: 'Unauthorized to cancel this booking' });
         }
 
-        await prisma.booking.delete({
+        await prisma.registration.delete({
             where: { id: parseInt(bookingId) }
         });
 

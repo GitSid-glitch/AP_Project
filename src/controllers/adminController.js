@@ -34,13 +34,13 @@ const getEvents = async (req, res) => {
 
 const updateEventStatus = async (req, res) => {
     const { id } = req.params;
-    const { status } = req.body; 
+    const { isApproved } = req.body;
 
     try {
 
         const event = await prisma.event.update({
             where: { id: parseInt(id) },
-            data: { status: status } 
+            data: { isApproved: isApproved }
         });
         res.status(200).json(event);
     } catch (err) {
