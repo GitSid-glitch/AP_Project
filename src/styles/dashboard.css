@@ -1,0 +1,42 @@
+/* src/styles/dashboard.css */
+:root{
+  --left-width: 260px;
+  --accent: linear-gradient(180deg,#6a5cff,#4e3bff);
+  --bg: #0f1724;
+  --surface: #f7f8fb;
+}
+
+body,html,#root { height:100%; margin:0; font-family: Inter, Roboto, Arial, sans-serif; }
+
+.dashboard-root {
+  display:flex;
+  min-height:100vh;
+  background: radial-gradient(circle at 10% 10%, rgba(78,59,255,0.07), transparent 20%), #0b0f1a;
+  color: #fff;
+}
+
+/* left sidebar container */
+.dashboard-left {
+  width: var(--left-width);
+  min-width: var(--left-width);
+  background: linear-gradient(180deg,#5b46ff 0%, #3b6bff 100%);
+  padding: 40px 18px;
+  box-shadow: 8px 0 30px rgba(0,0,0,0.55);
+}
+
+/* main content area */
+.dashboard-main {
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+}
+
+/* center content */
+.dashboard-content {
+  padding: 28px;
+  min-height: calc(100vh - 64px);
+  background: rgba(255,255,255,0.02);
+}
+.page h2 { color: rgba(255,255,255,0.9); margin-top: 0; }
+.page p { color: rgba(255,255,255,0.7); }
