@@ -32,6 +32,7 @@ model Event {
   date          DateTime
   venue         String
   status        String   @default("PENDING")
+  capacity      Int      @default(50)
   
   // Foreign Key to User (the organizer)
   organizerId   Int

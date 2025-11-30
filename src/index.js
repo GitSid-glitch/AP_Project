@@ -4,6 +4,7 @@ const passport = require('passport');
 
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
+const studentRoutes = require('./routes/student');
 const cors = require('cors');
 
 
@@ -24,6 +25,7 @@ app.use(passport.initialize());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/student', studentRoutes);
 
 
 app.listen(PORT, () => {
