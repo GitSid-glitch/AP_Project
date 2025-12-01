@@ -1,0 +1,60 @@
+/* Full screen beautiful gradient background */
+.home-container {
+  height: 100vh;
+  width: 100vw;
+  background: linear-gradient(135deg, #3f2b96 0%, #a8c0ff 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* Title */
+.home-title {
+  font-size: 42px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 40px;
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Centered cards */
+.role-grid {
+  display: flex;
+  gap: 40px;
+}
+
+/* Individual role cards */
+.role-card {
+  width: 200px;
+  height: 200px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.role-card:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-10px);
+}
+
+/* Role emoji */
+.role-emoji {
+  font-size: 50px;
+  margin-bottom: 10px;
+}
+
+/* Role name */
+.role-label {
+  font-size: 24px;
+  font-weight: 600;
+  color: white;
+}
