@@ -1,69 +1,68 @@
+// src/components/AdminLogin.jsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; 
+import "../styles/login.css";
 
-export default function AdminLogin({ goBack }) {
+export default function AdminLogin({ navigate, goBack }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const navigate = useNavigate(); 
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-
+  const handleLogin = async () => {
+    if (!email.trim() || !password) {
+      alert("Provide email & password");
+      return;
+    }
+    setLoading(true);
     try {
-      const response = await fetch("http://localhost:3002/api/auth/login", {
+      const res = await fetch("/api/auth/admin/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+      }).catch(() => null);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        if (data.user.role !== "ADMIN") {
-            setError("Access Denied: You are not an Administrator.");
-            return;
-        }
-
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        alert("Login successful!");
-        
-        navigate("/admin/dashboard"); 
-      } else {
-        setError(data.message || "Login failed");
+      if (res && !res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Admin login failed");
+        setLoading(false);
+        return;
       }
+
+      navigate("admin-dashboard");
     } catch (err) {
-      console.error(err); 
-      setError("Server error. Is the backend running on port 3002?");
+      console.error(err);
+      alert("Network error.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="login-page">
-      <h2 className="login-title">Admin Login</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <form onSubmit={handleSubmit} className="login-form">
-        <input
-          type="email"
-          placeholder="admin@college.edu"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Login</button>
-      </form>
-      <button className="back-btn" onClick={goBack}>← Back</button>
+    <div className="login-container">
+      <h2>Admin Login</h2>
+
+      <input
+        type="email"
+        placeholder="Email"
+        className="login-input"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+
+      <input
+        type="password"
+        placeholder="Password"
+        className="login-input"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+
+      <button className="login-btn" onClick={handleLogin} disabled={loading}>
+        {loading ? "Please wait..." : "Login"}
+      </button>
+
+      <button className="back-btn" onClick={goBack} style={{ marginTop: 8 }}>
+        Back
+      </button>
     </div>
   );
 }
