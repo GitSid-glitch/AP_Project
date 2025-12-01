@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import "../styles/login.css";
 
 export default function StudentLogin({ navigate, goBack }) {
-  // view: "idle" (show two big buttons) | "signin" (show email/password) | "signup" (show signup fields)
+  // view: "idle" | "signin" | "signup"
   const [view, setView] = useState("idle");
   const [fullname, setFullname] = useState("");
   const [branch, setBranch] = useState("");
@@ -11,59 +11,75 @@ export default function StudentLogin({ navigate, goBack }) {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // --- SIGN IN LOGIC ---
   const handleSignIn = async () => {
     if (!email.trim() || !password) return alert("Please enter email and password.");
     setLoading(true);
+
     try {
-      const res = await fetch("/api/auth/student/login", {
+      // FIX 1: Use correct URL
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password }),
-      }).catch(() => null);
+      });
 
-      if (res && !res.ok) {
-        const data = await res.json().catch(() => ({}));
+      const data = await res.json();
+
+      if (!res.ok) {
         alert(data.message || "Sign in failed");
         setLoading(false);
         return;
       }
 
-      // success
-      navigate("student-dashboard");
+      if (data.user.role !== "STUDENT") {
+        alert("Access Denied: This account is not a Student.");
+        setLoading(false);
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      navigate("/student/dashboard");
+
     } catch (err) {
       console.error(err);
-      alert("Network error");
+      alert("Network error. Is backend running?");
     } finally {
       setLoading(false);
     }
   };
 
   const handleSignUp = async () => {
-    if (!fullname.trim() || !branch.trim() || !email.trim() || !password) {
+    if (!fullname.trim() || !email.trim() || !password) {
       return alert("Please fill all fields to sign up.");
     }
     setLoading(true);
+
     try {
-      const res = await fetch("/api/auth/student/signup", {
+      const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fullname: fullname.trim(),
-          branch: branch.trim(),
+          name: fullname.trim(),
           email: email.trim(),
           password,
+          role: "STUDENT" 
         }),
-      }).catch(() => null);
+      });
 
-      if (res && !res.ok) {
-        const data = await res.json().catch(() => ({}));
+      const data = await res.json();
+
+      if (!res.ok) {
         alert(data.message || "Sign up failed");
         setLoading(false);
         return;
       }
 
-      alert("Account created. Redirecting...");
-      navigate("student-dashboard");
+      alert("Account created successfully! Please Sign In.");
+      setView("signin"); 
+      
     } catch (err) {
       console.error(err);
       alert("Network error");
@@ -77,7 +93,7 @@ export default function StudentLogin({ navigate, goBack }) {
       {/* Idle: only Sign In / Sign Up buttons */}
       {view === "idle" && (
         <>
-          <h2>Student</h2>
+          <h2>Student Portal</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <button
               className="login-btn"
@@ -137,9 +153,7 @@ export default function StudentLogin({ navigate, goBack }) {
 
           <button
             className="back-btn"
-            onClick={() => {
-              setView("idle");
-            }}
+            onClick={() => setView("idle")}
             style={{ marginTop: 8 }}
           >
             ← Back
@@ -162,7 +176,7 @@ export default function StudentLogin({ navigate, goBack }) {
 
           <input
             type="text"
-            placeholder="Branch of study (e.g. CSE)"
+            placeholder="Branch (Optional)"
             className="login-input"
             value={branch}
             onChange={(e) => setBranch(e.target.value)}
@@ -190,9 +204,7 @@ export default function StudentLogin({ navigate, goBack }) {
 
           <button
             className="back-btn"
-            onClick={() => {
-              setView("idle");
-            }}
+            onClick={() => setView("idle")}
             style={{ marginTop: 8 }}
           >
             ← Back

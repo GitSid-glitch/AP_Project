@@ -1,36 +1,56 @@
 // src/components/AdminLogin.jsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/login.css";
 
-export default function AdminLogin({ navigate, goBack }) {
+export default function AdminLogin({ goBack }) {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
+const handleLogin = async () => {
+    // 1. Basic Validation
     if (!email.trim() || !password) {
       alert("Provide email & password");
       return;
     }
     setLoading(true);
+
     try {
-      const res = await fetch("/api/auth/admin/login", {
+      console.log("Attempting login to /api/auth/login..."); 
+
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password }),
-      }).catch(() => null);
+      });
 
-      if (res && !res.ok) {
-        const data = await res.json().catch(() => ({}));
-        alert(data.message || "Admin login failed");
+      console.log("Response received:", res.status); 
+
+      const data = await res.json();
+      console.log("Data received:", data); 
+
+      if (!res.ok) {
+        alert(data.message || "Login failed");
         setLoading(false);
         return;
       }
 
-      navigate("admin-dashboard");
+      if (data.user.role !== "ADMIN") {
+        alert("Access Denied: You are not an Admin");
+        setLoading(false);
+        return;
+      }
+      console.log("Login Success! Redirecting..."); 
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      navigate("/admin/dashboard");
+
     } catch (err) {
-      console.error(err);
-      alert("Network error.");
+      console.error("Login Error:", err);
+      alert("Network Request Failed. Check Console (F12) for details.");
     } finally {
       setLoading(false);
     }

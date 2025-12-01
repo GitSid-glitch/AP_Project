@@ -1,5 +1,3 @@
-// src/routes/auth.js
-
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -9,9 +7,8 @@ const { authenticateToken } = require('../middleware/auth');
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// POST /api/auth/register
-router.post('/register', async (req, res) => {
-  const { name, email, password } = req.body;
+router.post('/signup', async (req, res) => {
+  const { name, email, password, role } = req.body;
 
   try {
     const existingUser = await prisma.user.findUnique({
@@ -30,7 +27,7 @@ router.post('/register', async (req, res) => {
         name: name,
         email: email.toLowerCase(),
         password: hashedPassword,
-        role: 'Student' // Default role (was USER, changed to Student to match schema roles)
+        role: role || 'STUDENT' 
       }
     });
 
@@ -42,7 +39,6 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// POST /api/auth/login
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -61,7 +57,6 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Payload with id and role
     const payload = { id: user.id, role: user.role };
     const token = jwt.sign(payload, process.env.JWT_SECRET || 'your_jwt_secret_key_here', { expiresIn: '1d' });
 
@@ -73,13 +68,12 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// POST /api/auth/logout
+
 router.post('/logout', (req, res) => {
-  // Client-side logout (remove token)
+
   res.status(200).json({ message: 'Logged out successfully' });
 });
 
-// GET /api/auth/status
 router.get('/status', authenticateToken, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
