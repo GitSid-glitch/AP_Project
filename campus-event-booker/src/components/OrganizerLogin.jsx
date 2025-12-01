@@ -3,57 +3,104 @@ import React, { useState } from "react";
 import "../styles/login.css";
 
 export default function OrganizerLogin({ navigate, goBack }) {
-  const [view, setView] = useState("idle"); // idle | signin | signup
+  // view: "idle" | "signin" | "signup"
+  const [view, setView] = useState("idle");
   const [company, setCompany] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // --- SIGN IN LOGIC ---
   const handleSignIn = async () => {
     if (!email.trim() || !password) return alert("Please enter email and password.");
     setLoading(true);
+
     try {
-      const res = await fetch("/api/auth/organizer/login", {
+      // FIX 1: Use the correct shared login URL (Full URL to avoid proxy issues)
+      const res = await fetch("http://localhost:3002/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password }),
-      }).catch(() => null);
+      });
 
-      if (res && !res.ok) {
-        const data = await res.json().catch(() => ({}));
+      const data = await res.json();
+
+      if (!res.ok) {
         alert(data.message || "Sign in failed");
         setLoading(false);
         return;
       }
 
-      navigate("organizer-dashboard");
+      // FIX 2: Security Check - Ensure they are an ORGANIZER
+      if (data.user.role !== "ORGANIZER") {
+        alert("Access Denied: This account is not an Organizer.");
+        setLoading(false);
+        return;
+      }
+
+      // FIX 3: Save Token
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      // FIX 4: Navigate to correct dashboard path
+      navigate("/organizer/dashboard");
+
     } catch (err) {
       console.error(err);
-      alert("Network error");
+      alert("Network error. Is Backend running on port 3002?");
     } finally {
       setLoading(false);
     }
   };
 
+  // --- SIGN UP LOGIC ---
   const handleSignUp = async () => {
-    if (!company.trim() || !email.trim() || !password) return alert("Please fill all fields.");
+    if (!company.trim() || !email.trim() || !password) {
+      return alert("Please fill all fields.");
+    }
     setLoading(true);
+
     try {
-      const res = await fetch("/api/auth/organizer/signup", {
+      // FIX 5: Create Account (Auto-Redirect)
+      const signupRes = await fetch("http://localhost:3002/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ company: company.trim(), email: email.trim(), password }),
-      }).catch(() => null);
+        body: JSON.stringify({
+          name: company.trim(), // Map 'company' to 'name' for the database
+          email: email.trim(),
+          password,
+          role: "ORGANIZER" // Crucial: Set the role!
+        }),
+      });
 
-      if (res && !res.ok) {
-        const data = await res.json().catch(() => ({}));
+      if (!signupRes.ok) {
+        const data = await signupRes.json().catch(() => ({}));
         alert(data.message || "Sign up failed");
         setLoading(false);
         return;
       }
 
-      alert("Account created. Redirecting...");
-      navigate("organizer-dashboard");
+      // Account created! Now Auto-Login immediately
+      const loginRes = await fetch("http://localhost:3002/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+
+      const loginData = await loginRes.json();
+
+      if (!loginRes.ok) {
+        alert("Account created! Please sign in manually.");
+        setView("signin");
+        setLoading(false);
+        return;
+      }
+
+      // Save Token and Redirect
+      localStorage.setItem("token", loginData.token);
+      localStorage.setItem("user", JSON.stringify(loginData.user));
+      navigate("/organizer/dashboard");
+
     } catch (err) {
       console.error(err);
       alert("Network error");
@@ -66,7 +113,7 @@ export default function OrganizerLogin({ navigate, goBack }) {
     <div className="login-container">
       {view === "idle" && (
         <>
-          <h2>Organizer</h2>
+          <h2>Organizer Portal</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <button
               className="login-btn"
@@ -134,7 +181,7 @@ export default function OrganizerLogin({ navigate, goBack }) {
 
           <input
             type="text"
-            placeholder="Company name"
+            placeholder="Company/Organization Name"
             className="login-input"
             value={company}
             onChange={(e) => setCompany(e.target.value)}
