@@ -80,3 +80,17 @@
   .topbar-right { margin-right: 0; gap: 12px; }
   .profile-circle { width: 36px; height: 36px; font-size: 16px; }
 }
+
+
+.topbar-logout-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.08);
+  color: #fff;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+
+.topbar-logout-btn:hover { opacity: 0.95; transform: translateY(-1px); }
