@@ -112,26 +112,42 @@ git clone https://github.com/your-username/AP_Project.git
 cd AP_Project
 ```
 
-### 2. Install dependencies
+### 2. Install Backend dependencies
 ```bash
 npm install
+npm install passport passport-jwt
 ```
 
-### 3. Prisma setup
+### 2. Install Backend dependencies
 ```bash
-npx prisma generate
-# optional if database initialized:
-# npx prisma migrate dev --name init
+cd campus-event-booker
+npm install
+cd ..  # Go back to the root folder
 ```
 
-### 4. Environment Variables
+### 3. Environment Variables
 Create a `.env` in project root:
 
 ```env
-DATABASE_URL="mysql://USER:PASSWORD@HOST:3306/eventbooker"
-JWT_SECRET="your-secret-key"
-PORT=5000
+DATABASE_URL="mysql://root:yourpassword@localhost:3306/campus_event_booker"
+JWT_SECRET="my_super_secret_key_123"
+PORT=3002
 ```
+
+### 4. Frontend Environment Variables
+```bash
+cd campus-event-booker
+```
+```env
+DANGEROUSLY_DISABLE_HOST_CHECK=true
+```
+
+### 4. Prisma setup
+```bash
+npx prisma db push
+```
+
+
 
 ### 5. Start backend
 ```bash
