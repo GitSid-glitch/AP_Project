@@ -70,28 +70,54 @@ export default function OrganizerDashboard({ goBack }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [drawerOpen]);
 
-  // --- Hardcoded sample data (replace with API later) ---
-  const statsSample = {
-    eventsCreated: 12,
-    upcoming: 3,
-    totalAttendees: 842,
+  // --- API State ---
+  const [myEvents, setMyEvents] = useState([]);
+  const [upcoming, setUpcoming] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch Data
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const headers = { "Authorization": `Bearer ${token}` };
+
+      const res = await fetch("/api/organizer/events", { headers });
+
+      if (res.ok) {
+        const data = await res.json();
+
+        // Map backend data to UI format
+        // Backend returns: { id, title, date, time, venue, isApproved, _count: { registrations } }
+        const mappedEvents = data.map(e => ({
+          id: e.id,
+          title: e.title,
+          date: `${new Date(e.date).toLocaleDateString()} ${e.time}`,
+          venue: e.venue,
+          status: e.isApproved ? "Published" : "Pending Approval", // Simple mapping
+          attendees: e._count?.registrations || 0
+        }));
+
+        setMyEvents(mappedEvents);
+
+        // Filter for upcoming (future dates)
+        const now = new Date();
+        const upcomingList = mappedEvents.filter(e => new Date(e.date) > now);
+        setUpcoming(upcomingList);
+
+      } else {
+        console.error("Failed to fetch events");
+      }
+    } catch (err) {
+      console.error("Error fetching events:", err);
+    } finally {
+      setLoading(false);
+    }
   };
-
-  const upcomingEventsSample = [
-    { id: 1, title: "Campus Career Fair", date: "2026-05-10 10:00", venue: "Conference Hall", status: "Published" },
-    { id: 2, title: "Hackathon 2026", date: "2026-06-20 09:00", venue: "Lab 1", status: "Pending Approval" },
-    { id: 3, title: "Design Workshop", date: "2026-07-02 14:00", venue: "Studio 3", status: "Draft" },
-  ];
-
-  const myEventsSample = [
-    { id: 11, title: "Campus Career Fair", date: "2026-05-10 10:00", venue: "Conference Hall", status: "Published", attendees: 320 },
-    { id: 12, title: "Hackathon 2026", date: "2026-06-20 09:00", venue: "Lab 1", status: "Pending Approval", attendees: 0 },
-    { id: 13, title: "Design Workshop", date: "2026-07-02 14:00", venue: "Studio 3", status: "Draft", attendees: 0 },
-  ];
-
-  // local UI state using sample data
-  const [upcoming, setUpcoming] = useState(upcomingEventsSample);
-  const [myEvents, setMyEvents] = useState(myEventsSample);
 
   // --- page map (non-overview pages render their components) ---
   const pages = {
@@ -108,20 +134,27 @@ export default function OrganizerDashboard({ goBack }) {
     setDrawerOpen(false);
   }
 
-  // UI handlers (demo-only)
+  // UI handlers
   function handleCreate() {
     setPage("create");
   }
 
   function handleEdit(id) {
-    // UI-only: jump to manage and highlight edit later
-    alert(`(UI) Edit event ${id} — open Create/Edit screen`);
+    // Ideally pass the event ID to the manage page or open a modal
+    // For now, we just switch page, but in a real app we'd set an "editingEventId" state
+    alert(`(UI) Edit functionality to be implemented. ID: ${id}`);
     setPage("manage");
   }
 
-  function handleSubmitForApproval(id) {
-    setMyEvents((prev) => prev.map(e => e.id === id ? { ...e, status: "Pending Approval" } : e));
-    alert(`(UI) Submitted event ${id} for admin approval`);
+  async function handleSubmitForApproval(id) {
+    // In this system, updating an event resets approval to false (pending).
+    // So "submitting" might just be ensuring it's in the system, or maybe we don't need an explicit action if it's auto-pending.
+    // But let's assume we want to trigger a re-save or just alert user.
+    // Since `updateEvent` resets `isApproved` to false, we can just call update with current data, or just alert.
+    // Given the prompt, I'll just leave a note or maybe call an update if I had the data.
+    // But I don't have the full event data here to PUT it back.
+    // So I will just alert for now, as "Pending Approval" is the default state after creation/update.
+    alert("Events are automatically submitted for approval upon creation or update.");
   }
 
   function handleExportReport() {
@@ -226,21 +259,23 @@ export default function OrganizerDashboard({ goBack }) {
             <div>
               <div style={{ display: "flex", gap: 14, marginBottom: 20 }}>
                 <div style={{ background: "linear-gradient(180deg,#0f1724 0%, #0b1220 100%)", color: "#fff", borderRadius: 12, padding: 18, minWidth: 160 }}>
-                  <div style={{fontSize:13, opacity:0.85}}>Events Created</div>
-                  <div style={{fontSize:28, fontWeight:700, marginTop:8}}>{statsSample.eventsCreated}</div>
-                  <div style={{fontSize:12, opacity:0.7, marginTop:8}}>All time</div>
+                  <div style={{ fontSize: 13, opacity: 0.85 }}>Events Created</div>
+                  <div style={{ fontSize: 28, fontWeight: 700, marginTop: 8 }}>{myEvents.length}</div>
+                  <div style={{ fontSize: 12, opacity: 0.7, marginTop: 8 }}>All time</div>
                 </div>
 
                 <div style={{ background: "linear-gradient(180deg,#0f1724 0%, #0b1220 100%)", color: "#fff", borderRadius: 12, padding: 18, minWidth: 160 }}>
-                  <div style={{fontSize:13, opacity:0.85}}>Upcoming</div>
-                  <div style={{fontSize:28, fontWeight:700, marginTop:8}}>{statsSample.upcoming}</div>
-                  <div style={{fontSize:12, opacity:0.7, marginTop:8}}>Next 90 days</div>
+                  <div style={{ fontSize: 13, opacity: 0.85 }}>Upcoming</div>
+                  <div style={{ fontSize: 28, fontWeight: 700, marginTop: 8 }}>{upcoming.length}</div>
+                  <div style={{ fontSize: 12, opacity: 0.7, marginTop: 8 }}>Next 90 days</div>
                 </div>
 
                 <div style={{ background: "linear-gradient(180deg,#0f1724 0%, #0b1220 100%)", color: "#fff", borderRadius: 12, padding: 18, minWidth: 160 }}>
-                  <div style={{fontSize:13, opacity:0.85}}>Total Attendees</div>
-                  <div style={{fontSize:28, fontWeight:700, marginTop:8}}>{statsSample.totalAttendees}</div>
-                  <div style={{fontSize:12, opacity:0.7, marginTop:8}}>All time</div>
+                  <div style={{ fontSize: 13, opacity: 0.85 }}>Total Attendees</div>
+                  <div style={{ fontSize: 28, fontWeight: 700, marginTop: 8 }}>
+                    {myEvents.reduce((acc, curr) => acc + (curr.attendees || 0), 0)}
+                  </div>
+                  <div style={{ fontSize: 12, opacity: 0.7, marginTop: 8 }}>All time</div>
                 </div>
               </div>
 
