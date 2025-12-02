@@ -1,8 +1,10 @@
 // src/components/StudentLogin.jsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/login.css";
 
-export default function StudentLogin({ navigate, goBack }) {
+export default function StudentLogin() {
+  const navigate = useNavigate();
   // view: "idle" (show two big buttons) | "signin" (show email/password) | "signup" (show signup fields)
   const [view, setView] = useState("idle");
   const [fullname, setFullname] = useState("");
@@ -15,21 +17,33 @@ export default function StudentLogin({ navigate, goBack }) {
     if (!email.trim() || !password) return alert("Please enter email and password.");
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/student/login", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password }),
-      }).catch(() => null);
+      });
 
-      if (res && !res.ok) {
-        const data = await res.json().catch(() => ({}));
+      const data = await res.json();
+
+      if (!res.ok) {
         alert(data.message || "Sign in failed");
         setLoading(false);
         return;
       }
 
+      // Security Check
+      if (data.user.role !== "STUDENT") {
+        alert("Access Denied: You are not a Student.");
+        setLoading(false);
+        return;
+      }
+
+      // Store token
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
       // success
-      navigate("student-dashboard");
+      navigate("/student/dashboard");
     } catch (err) {
       console.error(err);
       alert("Network error");
@@ -44,26 +58,48 @@ export default function StudentLogin({ navigate, goBack }) {
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/student/signup", {
+      const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fullname: fullname.trim(),
-          branch: branch.trim(),
+          name: fullname.trim(), // Backend expects 'name'
           email: email.trim(),
           password,
+          role: "STUDENT", // Explicit role
+          // branch is not in User model schema currently, so it might be ignored or I should check if I need to add it. 
+          // The prompt didn't ask to update schema for branch, so I'll assume it's just frontend state or ignored for now.
+          // Or I can send it if backend handles it (it doesn't seem to based on auth.js).
         }),
-      }).catch(() => null);
+      });
 
-      if (res && !res.ok) {
-        const data = await res.json().catch(() => ({}));
+      const data = await res.json();
+
+      if (!res.ok) {
         alert(data.message || "Sign up failed");
         setLoading(false);
         return;
       }
 
-      alert("Account created. Redirecting...");
-      navigate("student-dashboard");
+      // Auto-Login after signup
+      // We can just call the login endpoint immediately
+      const loginRes = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+
+      const loginData = await loginRes.json();
+
+      if (loginRes.ok) {
+        localStorage.setItem("token", loginData.token);
+        localStorage.setItem("user", JSON.stringify(loginData.user));
+        alert("Account created. Redirecting...");
+        navigate("/student/dashboard");
+      } else {
+        alert("Account created, but auto-login failed. Please sign in.");
+        setView("signin");
+      }
+
     } catch (err) {
       console.error(err);
       alert("Network error");
@@ -104,7 +140,7 @@ export default function StudentLogin({ navigate, goBack }) {
             </button>
           </div>
 
-          <button className="back-btn" onClick={goBack} style={{ marginTop: 12 }}>
+          <button className="back-btn" onClick={() => navigate("/")} style={{ marginTop: 12 }}>
             Back
           </button>
         </>

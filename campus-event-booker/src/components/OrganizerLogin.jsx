@@ -1,8 +1,10 @@
 // src/components/OrganizerLogin.jsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/login.css";
 
-export default function OrganizerLogin({ navigate, goBack }) {
+export default function OrganizerLogin() {
+  const navigate = useNavigate();
   const [view, setView] = useState("idle"); // idle | signin | signup
   const [company, setCompany] = useState("");
   const [email, setEmail] = useState("");
@@ -13,20 +15,32 @@ export default function OrganizerLogin({ navigate, goBack }) {
     if (!email.trim() || !password) return alert("Please enter email and password.");
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/organizer/login", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password }),
-      }).catch(() => null);
+      });
 
-      if (res && !res.ok) {
-        const data = await res.json().catch(() => ({}));
+      const data = await res.json();
+
+      if (!res.ok) {
         alert(data.message || "Sign in failed");
         setLoading(false);
         return;
       }
 
-      navigate("organizer-dashboard");
+      // Security Check
+      if (data.user.role !== "ORGANIZER") {
+        alert("Access Denied: You are not an Organizer.");
+        setLoading(false);
+        return;
+      }
+
+      // Store token
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      navigate("/organizer/dashboard");
     } catch (err) {
       console.error(err);
       alert("Network error");
@@ -39,21 +53,44 @@ export default function OrganizerLogin({ navigate, goBack }) {
     if (!company.trim() || !email.trim() || !password) return alert("Please fill all fields.");
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/organizer/signup", {
+      const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ company: company.trim(), email: email.trim(), password }),
-      }).catch(() => null);
+        body: JSON.stringify({
+          name: company.trim(), // Backend expects 'name', mapping company to name
+          email: email.trim(),
+          password,
+          role: "ORGANIZER"
+        }),
+      });
 
-      if (res && !res.ok) {
-        const data = await res.json().catch(() => ({}));
+      const data = await res.json();
+
+      if (!res.ok) {
         alert(data.message || "Sign up failed");
         setLoading(false);
         return;
       }
 
-      alert("Account created. Redirecting...");
-      navigate("organizer-dashboard");
+      // Auto-Login
+      const loginRes = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+
+      const loginData = await loginRes.json();
+
+      if (loginRes.ok) {
+        localStorage.setItem("token", loginData.token);
+        localStorage.setItem("user", JSON.stringify(loginData.user));
+        alert("Account created. Redirecting...");
+        navigate("/organizer/dashboard");
+      } else {
+        alert("Account created, but auto-login failed. Please sign in.");
+        setView("signin");
+      }
+
     } catch (err) {
       console.error(err);
       alert("Network error");
@@ -92,7 +129,7 @@ export default function OrganizerLogin({ navigate, goBack }) {
             </button>
           </div>
 
-          <button className="back-btn" onClick={goBack} style={{ marginTop: 12 }}>
+          <button className="back-btn" onClick={() => navigate("/")} style={{ marginTop: 12 }}>
             Back
           </button>
         </>

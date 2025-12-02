@@ -9,8 +9,8 @@ const { authenticateToken } = require('../middleware/auth');
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// POST /api/auth/register
-router.post('/register', async (req, res) => {
+// POST /api/auth/signup
+router.post('/signup', async (req, res) => {
   const { name, email, password } = req.body;
 
   try {
@@ -30,7 +30,7 @@ router.post('/register', async (req, res) => {
         name: name,
         email: email.toLowerCase(),
         password: hashedPassword,
-        role: 'Student' // Default role (was USER, changed to Student to match schema roles)
+        role: 'STUDENT' // Default role (was USER, changed to STUDENT to match schema roles)
       }
     });
 

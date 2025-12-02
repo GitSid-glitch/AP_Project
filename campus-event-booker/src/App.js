@@ -1,53 +1,5 @@
-// import React, { useState } from "react";
-// import "./App.css";
-
-// // Login Screens
-// import RoleSelectionPage from "./components/RoleSelectionPage";
-// import StudentLogin from "./components/StudentLogin";
-// import OrganizerLogin from "./components/OrganizerLogin";
-// import AdminLogin from "./components/AdminLogin";
-
-// // Dashboards
-// import StudentDashboard from './pages/student/StudentDashboard';
-// import OrganizerDashboard from './pages/organizer/OrganizerDashboard';
-// import AdminDashboard from './pages/admin/AdminDashboard';
-
-// export default function App() {
-//   const [page, setPage] = useState("role");
-
-//   const navigate = (target) => setPage(target);
-//   const goBack = () => setPage("role");
-
-//   return (
-//     <div className="App">
-
-//       {page === "role" && <RoleSelectionPage navigate={navigate} />}
-
-//       {page === "student-login" && (
-//         <StudentLogin navigate={navigate} goBack={goBack} />
-//       )}
-
-//       {page === "organizer-login" && (
-//         <OrganizerLogin navigate={navigate} goBack={goBack} />
-//       )}
-
-//       {page === "admin-login" && (
-//         <AdminLogin navigate={navigate} goBack={goBack} />
-//       )}
-
-//       {page === "student-dashboard" && <StudentDashboard goBack={goBack} />}
-
-//       {page === "organizer-dashboard" && <OrganizerDashboard goBack={goBack} />}
-
-//       {page === "admin-dashboard" && <AdminDashboard goBack={goBack} />}
-//     </div>
-//   );
-// }
-
-
-
-
-import React, { useState } from "react";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 
 // Login Screens
@@ -62,51 +14,22 @@ import OrganizerDashboard from './pages/organizer/OrganizerDashboard';
 import AdminDashboard from './pages/admin/AdminDashboard';
 
 export default function App() {
-  // default page
-  const defaultPage = "role";
-
-  // DEV: allow opening dashboards with ?dev=student|organizer|admin
-  // This only runs in development to avoid accidental exposure in production
-  let initial = defaultPage;
-  try {
-    if (process.env.NODE_ENV === "development") {
-      const params = new URLSearchParams(window.location.search);
-      const dev = params.get("dev");
-      if (dev === "student") initial = "student-dashboard";
-      if (dev === "organizer") initial = "organizer-dashboard";
-      if (dev === "admin") initial = "admin-dashboard";
-    }
-  } catch (e) {
-    // ignore in non-browser contexts
-  }
-
-  const [page, setPage] = useState(initial);
-
-  const navigate = (target) => setPage(target);
-  const goBack = () => setPage("role");
-
   return (
-    <div className="App">
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<RoleSelectionPage />} />
 
-      {page === "role" && <RoleSelectionPage navigate={navigate} />}
+          <Route path="/student/login" element={<StudentLogin />} />
+          <Route path="/organizer/login" element={<OrganizerLogin />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
 
-      {page === "student-login" && (
-        <StudentLogin navigate={navigate} goBack={goBack} />
-      )}
+          <Route path="/student/dashboard" element={<StudentDashboard />} />
+          <Route path="/organizer/dashboard" element={<OrganizerDashboard />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
 
-      {page === "organizer-login" && (
-        <OrganizerLogin navigate={navigate} goBack={goBack} />
-      )}
-
-      {page === "admin-login" && (
-        <AdminLogin navigate={navigate} goBack={goBack} />
-      )}
-
-      {page === "student-dashboard" && <StudentDashboard goBack={goBack} />}
-
-      {page === "organizer-dashboard" && <OrganizerDashboard goBack={goBack} />}
-
-      {page === "admin-dashboard" && <AdminDashboard goBack={goBack} />}
-    </div>
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
   );
 }
