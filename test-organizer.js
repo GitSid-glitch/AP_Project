@@ -2,7 +2,7 @@ const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 
 const prisma = new PrismaClient();
-const BASE_URL = 'http://localhost:3001/api';
+const BASE_URL = 'https://ap-project-srvv.onrender.com/api';
 
 async function runTests() {
     console.log('Starting Organizer API Tests...');

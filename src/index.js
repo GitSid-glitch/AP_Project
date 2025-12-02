@@ -9,7 +9,14 @@ const studentRoutes = require('./routes/student');
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-app.use(cors()); 
+app.use(cors({
+  origin: [
+    "https://ap-project1.vercel.app/",
+    "http://localhost:5173" 
+  ],
+  methods: "GET,POST,PUT,DELETE",
+  credentials: true
+}));
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
