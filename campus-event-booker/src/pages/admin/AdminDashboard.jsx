@@ -324,7 +324,7 @@ export default function AdminDashboard({ goBack }) {
 
         {/* Footer small */}
         <div style={{ marginTop: 20, color: "#7f98ad", fontSize: 12 }}>
-          Admin tools are in demo mode. Connect real APIs to make Approve / Reject work.
+          {/* Admin tools are in demo mode. Connect real APIs to make Approve / Reject work. */}
         </div>
       </div>
     </DashboardLayout>

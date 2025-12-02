@@ -397,7 +397,7 @@ export default function StudentDashboard({ goBack }) {
           </div>
 
           <div style={{ marginTop: 20, color: "#7f98ad", fontSize: 12 }}>
-            Student demo data — replace with API endpoints to load real events and registrations.
+            {/* Student demo data — replace with API endpoints to load real events and registrations. */}
           </div>
         </div>
       )}

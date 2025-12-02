@@ -348,7 +348,7 @@ export default function OrganizerDashboard({ goBack }) {
 
           {/* footer */}
           <div style={{ marginTop: 20, color: "#7f98ad", fontSize: 12 }}>
-            Organizer demo data — replace with API calls to persist changes and load real events.
+            {/* Organizer demo data — replace with API calls to persist changes and load real events. */}
           </div>
         </div>
       )}
