@@ -37,5 +37,17 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:3002"
+  "proxy": "http://localhost:3002",
+  "browser": {
+    "crypto": false,
+    "stream": false,
+    "buffer": false,
+    "util": false,
+    "url": false,
+    "http": false,
+    "path": false,
+    "fs": false,
+    "net": false,
+    "zlib": false
+  }
 }
