@@ -112,31 +112,97 @@ export default function AdminDashboard({ goBack }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [drawerOpen]);
 
-  // mock stats & pending
+  // --- API State ---
+  const [events, setEvents] = useState([]);
+  const [usersCount, setUsersCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  // Derived state
+  const pending = events.filter(e => !e.isApproved);
+  const published = events.filter(e => e.isApproved);
+
   const stats = {
-    totalEvents: 128,
-    pending: 4,
-    published: 86,
-    totalUsers: 3420,
+    totalEvents: events.length,
+    pending: pending.length,
+    published: published.length,
+    totalUsers: usersCount,
   };
 
-  const [pending, setPending] = useState([
-    { id: 1, title: "Tech Symposium 2026", organizer: "Society of Tech", startAt: "2026-03-12 10:00", venue: "Auditorium A" },
-    { id: 2, title: "Cultural Fest", organizer: "Arts Club", startAt: "2026-04-05 18:00", venue: "Open Grounds" },
-    { id: 3, title: "AI Workshop", organizer: "CS Dept", startAt: "2026-02-25 09:00", venue: "Lab 2" },
-    { id: 4, title: "Startup Pitch", organizer: "Entrepreneurship Cell", startAt: "2026-01-30 14:00", venue: "Conference Hall" },
-  ]);
+  // Fetch Data
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-  function handleApprove(id) {
-    setPending((prev) => prev.filter((p) => p.id !== id));
-    // TODO: replace with API call: POST /api/admin/events/:id/approve
-    alert(`(UI) Approved event id=${id}`);
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const headers = { "Authorization": `Bearer ${token}` };
+
+      const [eventsRes, usersRes] = await Promise.all([
+        fetch("/api/admin/events", { headers }),
+        fetch("/api/admin/users", { headers })
+      ]);
+
+      if (eventsRes.ok && usersRes.ok) {
+        const eventsData = await eventsRes.json();
+        const usersData = await usersRes.json();
+
+        // Map events to UI format
+        const mappedEvents = eventsData.map(e => ({
+          id: e.id,
+          title: e.title,
+          organizer: e.organizer?.name || "Unknown",
+          startAt: `${new Date(e.date).toLocaleDateString()} ${e.time}`,
+          venue: e.venue,
+          isApproved: e.isApproved
+        }));
+
+        setEvents(mappedEvents);
+        setUsersCount(usersData.length);
+      } else {
+        console.error("Failed to fetch admin data");
+      }
+    } catch (err) {
+      console.error("Error fetching admin data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  async function handleApprove(id) {
+    if (!window.confirm("Approve this event?")) return;
+    await updateStatus(id, true);
   }
 
-  function handleReject(id) {
-    setPending((prev) => prev.filter((p) => p.id !== id));
-    // TODO: show modal for reason and call API
-    alert(`(UI) Rejected event id=${id} (demo)`);
+  async function handleReject(id) {
+    if (!window.confirm("Reject (unpublish) this event?")) return;
+    await updateStatus(id, false);
+  }
+
+  async function updateStatus(id, isApproved) {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`/api/admin/events/${id}/status`, {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ isApproved })
+      });
+
+      if (res.ok) {
+        alert(`Event ${isApproved ? "approved" : "rejected"} successfully.`);
+        fetchData(); // Refresh list
+      } else {
+        const data = await res.json();
+        alert(data.message || "Operation failed");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Network error");
+    }
   }
 
   return (
