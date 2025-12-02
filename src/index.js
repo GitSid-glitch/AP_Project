@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3002;
 app.use(cors({
   origin: [
     "https://ap-project1.vercel.app/",
-    "http://localhost:5173" 
+    "http://localhost:3002" 
   ],
   methods: "GET,POST,PUT,DELETE",
   credentials: true
