@@ -1,10 +1,11 @@
 // src/components/OrganizerLogin.jsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/login.css";
 
-export default function OrganizerLogin({ navigate, goBack }) {
-  // view: "idle" | "signin" | "signup"
-  const [view, setView] = useState("idle");
+export default function OrganizerLogin() {
+  const navigate = useNavigate();
+  const [view, setView] = useState("idle"); // idle | signin | signup
   const [company, setCompany] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,8 +17,7 @@ export default function OrganizerLogin({ navigate, goBack }) {
     setLoading(true);
 
     try {
-      // FIX 1: Use the correct shared login URL (Full URL to avoid proxy issues)
-      const res = await fetch("http://localhost:3002/api/auth/login", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password }),
@@ -31,20 +31,18 @@ export default function OrganizerLogin({ navigate, goBack }) {
         return;
       }
 
-      // FIX 2: Security Check - Ensure they are an ORGANIZER
+      // Security Check
       if (data.user.role !== "ORGANIZER") {
-        alert("Access Denied: This account is not an Organizer.");
+        alert("Access Denied: You are not an Organizer.");
         setLoading(false);
         return;
       }
 
-      // FIX 3: Save Token
+      // Store token
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // FIX 4: Navigate to correct dashboard path
       navigate("/organizer/dashboard");
-
     } catch (err) {
       console.error(err);
       alert("Network error. Is Backend running on port 3002?");
@@ -61,27 +59,27 @@ export default function OrganizerLogin({ navigate, goBack }) {
     setLoading(true);
 
     try {
-      // FIX 5: Create Account (Auto-Redirect)
-      const signupRes = await fetch("http://localhost:3002/api/auth/signup", {
+      const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: company.trim(), // Map 'company' to 'name' for the database
+          name: company.trim(), // Backend expects 'name', mapping company to name
           email: email.trim(),
           password,
-          role: "ORGANIZER" // Crucial: Set the role!
+          role: "ORGANIZER"
         }),
       });
 
-      if (!signupRes.ok) {
-        const data = await signupRes.json().catch(() => ({}));
+      const data = await res.json();
+
+      if (!res.ok) {
         alert(data.message || "Sign up failed");
         setLoading(false);
         return;
       }
 
-      // Account created! Now Auto-Login immediately
-      const loginRes = await fetch("http://localhost:3002/api/auth/login", {
+      // Auto-Login
+      const loginRes = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password }),
@@ -89,17 +87,15 @@ export default function OrganizerLogin({ navigate, goBack }) {
 
       const loginData = await loginRes.json();
 
-      if (!loginRes.ok) {
-        alert("Account created! Please sign in manually.");
+      if (loginRes.ok) {
+        localStorage.setItem("token", loginData.token);
+        localStorage.setItem("user", JSON.stringify(loginData.user));
+        alert("Account created. Redirecting...");
+        navigate("/organizer/dashboard");
+      } else {
+        alert("Account created, but auto-login failed. Please sign in.");
         setView("signin");
-        setLoading(false);
-        return;
       }
-
-      // Save Token and Redirect
-      localStorage.setItem("token", loginData.token);
-      localStorage.setItem("user", JSON.stringify(loginData.user));
-      navigate("/organizer/dashboard");
 
     } catch (err) {
       console.error(err);
@@ -139,7 +135,7 @@ export default function OrganizerLogin({ navigate, goBack }) {
             </button>
           </div>
 
-          <button className="back-btn" onClick={goBack} style={{ marginTop: 12 }}>
+          <button className="back-btn" onClick={() => navigate("/")} style={{ marginTop: 12 }}>
             Back
           </button>
         </>

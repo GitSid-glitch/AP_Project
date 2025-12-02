@@ -1,9 +1,11 @@
 // src/components/StudentLogin.jsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/login.css";
 
-export default function StudentLogin({ navigate, goBack }) {
-  // view: "idle" | "signin" | "signup"
+export default function StudentLogin() {
+  const navigate = useNavigate();
+  // view: "idle" (show two big buttons) | "signin" (show email/password) | "signup" (show signup fields)
   const [view, setView] = useState("idle");
   const [fullname, setFullname] = useState("");
   const [branch, setBranch] = useState("");
@@ -17,7 +19,6 @@ export default function StudentLogin({ navigate, goBack }) {
     setLoading(true);
 
     try {
-      // FIX 1: Use correct URL
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -32,17 +33,19 @@ export default function StudentLogin({ navigate, goBack }) {
         return;
       }
 
+      // Security Check
       if (data.user.role !== "STUDENT") {
-        alert("Access Denied: This account is not a Student.");
+        alert("Access Denied: You are not a Student.");
         setLoading(false);
         return;
       }
 
+      // Store token
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
+      // success
       navigate("/student/dashboard");
-
     } catch (err) {
       console.error(err);
       alert("Network error. Is backend running?");
@@ -62,10 +65,13 @@ export default function StudentLogin({ navigate, goBack }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: fullname.trim(),
+          name: fullname.trim(), // Backend expects 'name'
           email: email.trim(),
           password,
-          role: "STUDENT" 
+          role: "STUDENT", // Explicit role
+          // branch is not in User model schema currently, so it might be ignored or I should check if I need to add it. 
+          // The prompt didn't ask to update schema for branch, so I'll assume it's just frontend state or ignored for now.
+          // Or I can send it if backend handles it (it doesn't seem to based on auth.js).
         }),
       });
 
@@ -77,9 +83,26 @@ export default function StudentLogin({ navigate, goBack }) {
         return;
       }
 
-      alert("Account created successfully! Please Sign In.");
-      setView("signin"); 
-      
+      // Auto-Login after signup
+      // We can just call the login endpoint immediately
+      const loginRes = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+
+      const loginData = await loginRes.json();
+
+      if (loginRes.ok) {
+        localStorage.setItem("token", loginData.token);
+        localStorage.setItem("user", JSON.stringify(loginData.user));
+        alert("Account created. Redirecting...");
+        navigate("/student/dashboard");
+      } else {
+        alert("Account created, but auto-login failed. Please sign in.");
+        setView("signin");
+      }
+
     } catch (err) {
       console.error(err);
       alert("Network error");
@@ -120,7 +143,7 @@ export default function StudentLogin({ navigate, goBack }) {
             </button>
           </div>
 
-          <button className="back-btn" onClick={goBack} style={{ marginTop: 12 }}>
+          <button className="back-btn" onClick={() => navigate("/")} style={{ marginTop: 12 }}>
             Back
           </button>
         </>

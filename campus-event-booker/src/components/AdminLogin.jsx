@@ -3,86 +3,69 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/login.css";
 
-export default function AdminLogin({ goBack }) {
+export default function AdminLogin() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-const handleLogin = async () => {
-    // 1. Basic Validation
-    if (!email.trim() || !password) {
-      alert("Provide email & password");
-      return;
-    }
-    setLoading(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
 
     try {
-      console.log("Attempting login to /api/auth/login..."); 
-
-      const res = await fetch("/api/auth/login", {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), password }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
       });
 
-      console.log("Response received:", res.status); 
+      const data = await response.json();
 
-      const data = await res.json();
-      console.log("Data received:", data); 
+      if (response.ok) {
+        // Security Check
+        if (data.user.role !== "ADMIN") {
+          setError("Access Denied: You are not an Admin.");
+          return;
+        }
 
-      if (!res.ok) {
-        alert(data.message || "Login failed");
-        setLoading(false);
-        return;
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        alert("Login successful!");
+        // Redirect to admin dashboard
+        navigate("/admin/dashboard");
+      } else {
+        setError(data.message || "Login failed");
       }
-
-      if (data.user.role !== "ADMIN") {
-        alert("Access Denied: You are not an Admin");
-        setLoading(false);
-        return;
-      }
-      console.log("Login Success! Redirecting..."); 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      navigate("/admin/dashboard");
-
     } catch (err) {
-      console.error("Login Error:", err);
-      alert("Network Request Failed. Check Console (F12) for details.");
-    } finally {
-      setLoading(false);
+      setError("Server error. Please try again.");
     }
   };
 
   return (
-    <div className="login-container">
-      <h2>Admin Login</h2>
-
-      <input
-        type="email"
-        placeholder="Email"
-        className="login-input"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-
-      <input
-        type="password"
-        placeholder="Password"
-        className="login-input"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-
-      <button className="login-btn" onClick={handleLogin} disabled={loading}>
-        {loading ? "Please wait..." : "Login"}
-      </button>
-
-      <button className="back-btn" onClick={goBack} style={{ marginTop: 8 }}>
-        Back
-      </button>
+    <div className="login-page">
+      <h2 className="login-title">Admin Login</h2>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      <form onSubmit={handleSubmit} className="login-form">
+        <input
+          type="email"
+          placeholder="admin@college.edu"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <button type="submit">Login</button>
+      </form>
+      <button className="back-btn" onClick={() => navigate("/")}>← Back</button>
     </div>
   );
 }

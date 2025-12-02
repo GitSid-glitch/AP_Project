@@ -1,11 +1,14 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/home.css";
 
-export default function RoleSelectionPage({ navigate }) {
+export default function RoleSelectionPage() {
+  const navigate = useNavigate();
+
   const roles = [
-    { id: "student-login", label: "Student", emoji: "🎓" },
-    { id: "organizer-login", label: "Organizer", emoji: "📣" },
-    { id: "admin-login", label: "Admin", emoji: "🛠️" },
+    { id: "/student/login", label: "Student", emoji: "🎓" },
+    { id: "/organizer/login", label: "Organizer", emoji: "📣" },
+    { id: "/admin/login", label: "Admin", emoji: "🛠️" },
   ];
 
   return (
