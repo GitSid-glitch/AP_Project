@@ -142,19 +142,19 @@ cd campus-event-booker
 DANGEROUSLY_DISABLE_HOST_CHECK=true
 ```
 
-### 4. Prisma setup
+### 5. Prisma setup
 ```bash
 npx prisma db push
 ```
 
 
 
-### 5. Start backend
+### 6. Start backend
 ```bash
 node server.js
 ```
 
-### 6. Start frontend
+### 7. Start frontend
 ```bash
 npm start
 ```
