@@ -11,9 +11,9 @@ body {
   font-family: "Poppins", sans-serif;
   color: white;
   min-height: 100vh;
-  display: flex;
+  /* display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: center; */
 }
 
 @keyframes gradientShift {
@@ -183,4 +183,166 @@ footer {
   margin-top: 50px;
   font-size: 0.9rem;
   opacity: 0.8;
+}
+
+
+/* -------------------------
+   Admin Dashboard Drawer
+--------------------------*/
+
+.three-dot-wrap {
+  position: fixed;
+  top: calc((var(--topbar-height, 60px) - 40px) / 2);
+  right: 20px;
+  z-index: 3200 !important;
+}
+
+@media (max-width: 900px) {
+  .three-dot-wrap {
+    left: 12px;
+    right: auto;
+    top: 12px;
+  }
+}
+
+.three-dot-btn {
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.35);
+  transition: transform .12s ease, background .12s ease;
+}
+
+.three-dot-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(255,255,255,0.2);
+}
+
+.three-dot-btn .dot {
+  width: 6px;
+  height: 6px;
+  background: #c8e7f1;
+  border-radius: 50%;
+}
+
+/* Drawer overlay */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2,6,23,0.45);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .18s ease, visibility .18s;
+  z-index: 3000 !important;
+}
+
+.drawer-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Drawer panel */
+.drawer {
+  position: fixed;
+  top: 0;
+  left: -320px;
+  bottom: 0;
+  width: 320px;
+  background: linear-gradient(180deg,#5661ff 0%, #5d6bff 100%);
+  padding: 20px;
+  box-shadow: 8px 0 36px rgba(4,8,24,0.6);
+  transition: left .22s cubic-bezier(.2,.9,.2,1);
+  z-index: 3100 !important;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.drawer.open {
+  left: 0;
+}
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.drawer-close {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: rgba(11,18,32,.9);
+}
+
+.drawer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.drawer-item {
+  background: rgba(255,255,255,0.95);
+  color: #0b1220;
+  border: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(2,6,23,0.15);
+}
+
+.drawer-item:hover {
+  transform: translateX(4px);
+}
+
+/* Dashboard buttons */
+.btn-primary {
+  background: linear-gradient(180deg,#06b6d4,#05a5c0);
+  color: #042022;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(2,6,23,0.2);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #e6eef8;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.btn-approve {
+  background: linear-gradient(180deg,#06b6d4,#05a5c0);
+  color: #042022;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-reject {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #e6eef8;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
 }

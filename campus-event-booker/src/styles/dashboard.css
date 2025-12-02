@@ -1,4 +1,6 @@
-/* src/styles/dashboard.css */
+/* src/styles/dashboard.css - updated */
+
+/* color tokens */
 :root{
   --left-width: 260px;
   --accent: linear-gradient(180deg,#6a5cff,#4e3bff);
@@ -6,8 +8,10 @@
   --surface: #f7f8fb;
 }
 
+/* global */
 body,html,#root { height:100%; margin:0; font-family: Inter, Roboto, Arial, sans-serif; }
 
+/* overall layout */
 .dashboard-root {
   display:flex;
   min-height:100vh;
@@ -32,11 +36,115 @@ body,html,#root { height:100%; margin:0; font-family: Inter, Roboto, Arial, sans
   background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
 }
 
-/* center content */
+/* TOPBAR: keep same height (your topbar css already sets height:60px) */
+
+/* center content — make this area scrollable */
 .dashboard-content {
   padding: 28px;
+  /* allow space for the topbar (60px) and keep the content area scrollable */
   min-height: calc(100vh - 64px);
-  background: rgba(255,255,255,0.02);
+  box-sizing: border-box;
+
+  /* IMPORTANT: scrolling behavior */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
+
+/* optional: nicer thin scrollbar for desktop */
+.dashboard-content::-webkit-scrollbar { width: 10px; }
+.dashboard-content::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.04);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* page text */
 .page h2 { color: rgba(255,255,255,0.9); margin-top: 0; }
 .page p { color: rgba(255,255,255,0.7); }
+
+/* list/grid helpers used in dashboards */
+.grid-two-col {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+/* ensure content doesn't overflow horizontally */
+.dashboard-content > * { max-width: 100%; box-sizing: border-box; }
+
+/* event/registration/pending card spacing & base styling */
+.event-card,
+.registration-card,
+.pending-card {
+  margin-bottom: 18px;
+  border-radius: 12px;
+  padding: 14px;
+  background: rgba(10,13,17,0.6);
+  box-shadow: 0 6px 18px rgba(2,6,23,0.6);
+  color: #e6eef8;
+}
+
+/* separate relationships inside card for readable layout */
+.event-card .meta,
+.registration-card .meta { opacity: 0.75; margin-top: 6px; font-size: 13px; }
+
+/* right column "registrations" list spacing */
+.registrations-list { display: flex; flex-direction: column; gap: 14px; }
+
+/* quick actions / placeholder container */
+.quick-actions {
+  background: rgba(14,19,24,0.7);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 6px 16px rgba(2,6,23,0.5);
+}
+
+/* small responsive tweaks */
+@media (max-width: 980px) {
+  .grid-two-col { grid-template-columns: 1fr; }
+  .dashboard-left { display: none; } /* optional: hide fixed sidebar on small screens */
+}
+
+
+
+/* -----------------------
+   layout scrolling fix
+   ----------------------- */
+
+/* ensure the main column fills the viewport and can contain a scrollable content area */
+.dashboard-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+
+  /* fill viewport height so .dashboard-content calc works reliably */
+  height: 100vh;
+
+  /* don't let children create a page-level scrollbar — we want the inner area to scroll */
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+}
+
+/* content area that scrolls internally */
+.dashboard-content {
+  padding: 28px;
+
+  /* make dashboard-content exactly the remaining height after topbar (60px) */
+  height: calc(100vh - 60px);
+
+  /* enable vertical scrolling when content overflows */
+  overflow-y: auto;
+
+  /* optional: keep horizontal from creating scrollbars */
+  overflow-x: hidden;
+
+  /* preserve previous look */
+  min-height: auto;
+  background: rgba(255,255,255,0.02);
+}
+
+/* optional: nicer scrollbar for desktop (not required) */
+.dashboard-content::-webkit-scrollbar { width: 10px; }
+.dashboard-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 8px; }
+.dashboard-content::-webkit-scrollbar-track { background: transparent; }
