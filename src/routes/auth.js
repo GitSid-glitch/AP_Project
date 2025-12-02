@@ -9,7 +9,7 @@ const prisma = new PrismaClient();
 
 // POST /api/auth/signup
 router.post('/signup', async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
 
   try {
     const existingUser = await prisma.user.findUnique({
@@ -28,7 +28,7 @@ router.post('/signup', async (req, res) => {
         name: name,
         email: email.toLowerCase(),
         password: hashedPassword,
-        role: 'STUDENT' // Default role (was USER, changed to STUDENT to match schema roles)
+        role: role || 'STUDENT' // Use provided role or default to STUDENT
       }
     });
 
