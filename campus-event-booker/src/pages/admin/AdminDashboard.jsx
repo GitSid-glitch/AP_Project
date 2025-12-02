@@ -27,13 +27,17 @@
 // src/pages/admin/AdminDashboard.jsx
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "../../layout/DashboardLayout";
+import AllEvents from "./AllEvents";
+import AdminSettings from "./AdminSettings";
+// import ManageUsers from "./ManageUsers"; // If exists
+// import Reports from "./Reports"; // If exists
 
 /*
   AdminDashboard (complete)
   - three-dot toggle in top-right (hidden while drawer open)
   - slide-over drawer + overlay that closes on outside click or Escape
   - stopPropagation for clicks inside drawer
-  - mock data UI for Pending Approvals (Approve/Reject UI-only)
+  - Real data fetching for Overview
 */
 
 const statCardStyle = {
@@ -43,6 +47,8 @@ const statCardStyle = {
   padding: 18,
   boxShadow: "0 8px 24px rgba(2,6,23,0.6)",
   minWidth: 180,
+  cursor: "pointer",
+  transition: "transform 0.2s"
 };
 
 const neutralCard = {
@@ -53,9 +59,9 @@ const neutralCard = {
   boxShadow: "0 8px 28px rgba(2,6,23,0.55)",
 };
 
-function StatCard({ title, value, hint }) {
+function StatCard({ title, value, hint, onClick }) {
   return (
-    <div style={statCardStyle}>
+    <div style={statCardStyle} onClick={onClick}>
       <div style={{ fontSize: 13, opacity: 0.85 }}>{title}</div>
       <div style={{ fontSize: 30, fontWeight: 700, marginTop: 8 }}>{value}</div>
       {hint && <div style={{ fontSize: 12, marginTop: 8, opacity: 0.75 }}>{hint}</div>}
@@ -205,6 +211,91 @@ export default function AdminDashboard({ goBack }) {
     }
   }
 
+  // --- Sub-pages ---
+  const renderContent = () => {
+    switch (page) {
+      case "all-events":
+        return <AllEvents />;
+      case "settings":
+        return <AdminSettings />;
+      case "overview":
+      default:
+        return (
+          <div style={{ padding: 28, minHeight: 600, background: "linear-gradient(180deg,#07080b 0%, #071018 100%)", borderRadius: 8 }}>
+            {/* Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+              <div>
+                <h1 style={{ margin: 0, color: "#fff", fontSize: 28 }}>Welcome, Admin</h1>
+                <div style={{ color: "#94a3b8", marginTop: 6 }}>Overview of site activity and approvals</div>
+              </div>
+
+              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                <button className="btn-ghost" onClick={() => alert("Open notifications (demo)")}>🔔 Notifications</button>
+                <button className="btn-primary" onClick={() => alert("Export reports (demo)")}>Export Reports</button>
+              </div>
+            </div>
+
+            {/* Grid: stats + pending + calendar */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 20 }}>
+              <div style={{ gridColumn: "span 8", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+                <StatCard title="Total Events" value={stats.totalEvents} hint="All time" onClick={() => setPage("all-events")} />
+                <StatCard title="Pending Approvals" value={stats.pending} hint="Requires review" />
+                <StatCard title="Published Events" value={stats.published} hint="Visible to students" />
+              </div>
+
+              <div style={{ gridColumn: "span 4" }}>
+                <div style={{ ...neutralCard, minHeight: 120 }}>
+                  <div style={{ fontSize: 14, opacity: 0.9 }}>Quick Actions</div>
+                  <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
+                    <button className="btn-primary" style={{ flex: 1 }} onClick={() => alert("Create Event (demo)")}>Create Event</button>
+                    <button className="btn-ghost" style={{ flex: 1 }} onClick={() => alert("Manage Organizers (demo)")}>Manage Organizers</button>
+                  </div>
+                  <div style={{ marginTop: 12, color: "#9fb3c6", fontSize: 12 }}>Tip: Approve events to make them visible to students.</div>
+                </div>
+              </div>
+
+              {/* Pending approvals list */}
+              <div style={{ gridColumn: "span 7" }}>
+                <div style={{ marginBottom: 12, color: "#c9d7e6", fontWeight: 700, fontSize: 18 }}>Pending Approvals</div>
+                <div>
+                  {pending.length === 0 ? (
+                    <div style={{ ...neutralCard }}>No pending events — all clear 🎉</div>
+                  ) : (
+                    pending.map((p) => (
+                      <PendingCard key={p.id} item={p} onApprove={handleApprove} onReject={handleReject} />
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Calendar / site overview */}
+              <div style={{ gridColumn: "span 5" }}>
+                <div style={{ ...neutralCard, minHeight: 300 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "#e6eef8" }}>Site Calendar (Preview)</div>
+                    <div style={{ fontSize: 12, opacity: 0.7 }}>Monthly</div>
+                  </div>
+
+                  <div style={{ marginTop: 12, width: "100%", height: 220, borderRadius: 10, background: "linear-gradient(180deg,#07101a,#07121c)", display: "flex", alignItems: "center", justifyContent: "center", color: "#7fb0c6", fontSize: 14 }}>
+                    Calendar UI (plug a calendar lib here)
+                  </div>
+
+                  <div style={{ marginTop: 12, fontSize: 12, color: "#9fb3c6" }}>
+                    Click events to adjust capacity or close registrations (admin actions).
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer small */}
+            <div style={{ marginTop: 20, color: "#7f98ad", fontSize: 12 }}>
+              Admin tools are in demo mode. Connect real APIs to make Approve / Reject work.
+            </div>
+          </div>
+        );
+    }
+  };
+
   return (
     <DashboardLayout
       page={page}
@@ -256,77 +347,7 @@ export default function AdminDashboard({ goBack }) {
       </aside>
 
       {/* Main content */}
-      <div style={{ padding: 28, minHeight: 600, background: "linear-gradient(180deg,#07080b 0%, #071018 100%)", borderRadius: 8 }}>
-        {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-          <div>
-            <h1 style={{ margin: 0, color: "#fff", fontSize: 28 }}>Welcome, Admin</h1>
-            <div style={{ color: "#94a3b8", marginTop: 6 }}>Overview of site activity and approvals</div>
-          </div>
-
-          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-            <button className="btn-ghost" onClick={() => alert("Open notifications (demo)")}>🔔 Notifications</button>
-            <button className="btn-primary" onClick={() => alert("Export reports (demo)")}>Export Reports</button>
-          </div>
-        </div>
-
-        {/* Grid: stats + pending + calendar */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 20 }}>
-          <div style={{ gridColumn: "span 8", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
-            <StatCard title="Total Events" value={stats.totalEvents} hint="All time" />
-            <StatCard title="Pending Approvals" value={stats.pending} hint="Requires review" />
-            <StatCard title="Published Events" value={stats.published} hint="Visible to students" />
-          </div>
-
-          <div style={{ gridColumn: "span 4" }}>
-            <div style={{ ...neutralCard, minHeight: 120 }}>
-              <div style={{ fontSize: 14, opacity: 0.9 }}>Quick Actions</div>
-              <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-                <button className="btn-primary" style={{ flex: 1 }} onClick={() => alert("Create Event (demo)")}>Create Event</button>
-                <button className="btn-ghost" style={{ flex: 1 }} onClick={() => alert("Manage Organizers (demo)")}>Manage Organizers</button>
-              </div>
-              <div style={{ marginTop: 12, color: "#9fb3c6", fontSize: 12 }}>Tip: Approve events to make them visible to students.</div>
-            </div>
-          </div>
-
-          {/* Pending approvals list */}
-          <div style={{ gridColumn: "span 7" }}>
-            <div style={{ marginBottom: 12, color: "#c9d7e6", fontWeight: 700, fontSize: 18 }}>Pending Approvals</div>
-            <div>
-              {pending.length === 0 ? (
-                <div style={{ ...neutralCard }}>No pending events — all clear 🎉</div>
-              ) : (
-                pending.map((p) => (
-                  <PendingCard key={p.id} item={p} onApprove={handleApprove} onReject={handleReject} />
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Calendar / site overview */}
-          <div style={{ gridColumn: "span 5" }}>
-            <div style={{ ...neutralCard, minHeight: 300 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#e6eef8" }}>Site Calendar (Preview)</div>
-                <div style={{ fontSize: 12, opacity: 0.7 }}>Monthly</div>
-              </div>
-
-              <div style={{ marginTop: 12, width: "100%", height: 220, borderRadius: 10, background: "linear-gradient(180deg,#07101a,#07121c)", display: "flex", alignItems: "center", justifyContent: "center", color: "#7fb0c6", fontSize: 14 }}>
-                Calendar UI (plug a calendar lib here)
-              </div>
-
-              <div style={{ marginTop: 12, fontSize: 12, color: "#9fb3c6" }}>
-                Click events to adjust capacity or close registrations (admin actions).
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer small */}
-        <div style={{ marginTop: 20, color: "#7f98ad", fontSize: 12 }}>
-          Admin tools are in demo mode. Connect real APIs to make Approve / Reject work.
-        </div>
-      </div>
+      {renderContent()}
     </DashboardLayout>
   );
 }
