@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, useNavigate, Navigate } from "react-router-dom"; 
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 
 // Login Screens
@@ -14,24 +14,22 @@ import OrganizerDashboard from './pages/organizer/OrganizerDashboard';
 import AdminDashboard from './pages/admin/AdminDashboard';
 
 export default function App() {
-  const navigate = useNavigate();
-  const goBack = () => navigate("/");
-
   return (
-    <div className="App">
-      <Routes>
-        <Route path="/" element={<RoleSelectionPage navigate={navigate} />} />
-        
-        <Route path="/student-login" element={<StudentLogin navigate={navigate} goBack={goBack} />} />
-        <Route path="/organizer-login" element={<OrganizerLogin navigate={navigate} goBack={goBack} />} />
-        <Route path="/admin-login" element={<AdminLogin goBack={goBack} />} />
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<RoleSelectionPage />} />
 
-        <Route path="/admin/dashboard" element={<AdminDashboard goBack={goBack} />} />
-        <Route path="/student/dashboard" element={<StudentDashboard goBack={goBack} />} />
-        <Route path="/organizer/dashboard" element={<OrganizerDashboard goBack={goBack} />} />
+          <Route path="/student/login" element={<StudentLogin />} />
+          <Route path="/organizer/login" element={<OrganizerLogin />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
 
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </div>
+          <Route path="/student/dashboard" element={<StudentDashboard />} />
+          <Route path="/organizer/dashboard" element={<OrganizerDashboard />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
   );
 }
