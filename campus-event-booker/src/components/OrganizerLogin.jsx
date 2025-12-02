@@ -11,9 +11,11 @@ export default function OrganizerLogin() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // --- SIGN IN LOGIC ---
   const handleSignIn = async () => {
     if (!email.trim() || !password) return alert("Please enter email and password.");
     setLoading(true);
+
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
@@ -43,15 +45,19 @@ export default function OrganizerLogin() {
       navigate("/organizer/dashboard");
     } catch (err) {
       console.error(err);
-      alert("Network error");
+      alert("Network error. Is Backend running on port 3002?");
     } finally {
       setLoading(false);
     }
   };
 
+  // --- SIGN UP LOGIC ---
   const handleSignUp = async () => {
-    if (!company.trim() || !email.trim() || !password) return alert("Please fill all fields.");
+    if (!company.trim() || !email.trim() || !password) {
+      return alert("Please fill all fields.");
+    }
     setLoading(true);
+
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
@@ -103,7 +109,7 @@ export default function OrganizerLogin() {
     <div className="login-container">
       {view === "idle" && (
         <>
-          <h2>Organizer</h2>
+          <h2>Organizer Portal</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <button
               className="login-btn"
@@ -171,7 +177,7 @@ export default function OrganizerLogin() {
 
           <input
             type="text"
-            placeholder="Company name"
+            placeholder="Company/Organization Name"
             className="login-input"
             value={company}
             onChange={(e) => setCompany(e.target.value)}

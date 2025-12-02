@@ -13,9 +13,11 @@ export default function StudentLogin() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // --- SIGN IN LOGIC ---
   const handleSignIn = async () => {
     if (!email.trim() || !password) return alert("Please enter email and password.");
     setLoading(true);
+
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
@@ -46,17 +48,18 @@ export default function StudentLogin() {
       navigate("/student/dashboard");
     } catch (err) {
       console.error(err);
-      alert("Network error");
+      alert("Network error. Is backend running?");
     } finally {
       setLoading(false);
     }
   };
 
   const handleSignUp = async () => {
-    if (!fullname.trim() || !branch.trim() || !email.trim() || !password) {
+    if (!fullname.trim() || !email.trim() || !password) {
       return alert("Please fill all fields to sign up.");
     }
     setLoading(true);
+
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
@@ -113,7 +116,7 @@ export default function StudentLogin() {
       {/* Idle: only Sign In / Sign Up buttons */}
       {view === "idle" && (
         <>
-          <h2>Student</h2>
+          <h2>Student Portal</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <button
               className="login-btn"
@@ -173,9 +176,7 @@ export default function StudentLogin() {
 
           <button
             className="back-btn"
-            onClick={() => {
-              setView("idle");
-            }}
+            onClick={() => setView("idle")}
             style={{ marginTop: 8 }}
           >
             ← Back
@@ -198,7 +199,7 @@ export default function StudentLogin() {
 
           <input
             type="text"
-            placeholder="Branch of study (e.g. CSE)"
+            placeholder="Branch (Optional)"
             className="login-input"
             value={branch}
             onChange={(e) => setBranch(e.target.value)}
@@ -226,9 +227,7 @@ export default function StudentLogin() {
 
           <button
             className="back-btn"
-            onClick={() => {
-              setView("idle");
-            }}
+            onClick={() => setView("idle")}
             style={{ marginTop: 8 }}
           >
             ← Back
